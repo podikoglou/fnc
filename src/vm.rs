@@ -61,7 +61,7 @@ impl VM {
         match opcode & 0xF000 {
             0x0000 => {
                 match opcode {
-                    0x00E0 => { /* clear screen */ }
+                    0x00E0 => self.clear_screen(),
                     0x00EE => { /* return */ }
                     other => todo!("unimplemented opcode: {}", other),
                 }
@@ -77,5 +77,9 @@ impl VM {
 
             other => todo!("unimplemented opcode: {}", other),
         }
+    }
+
+    fn clear_screen(&mut self) {
+        self.buffer = vec![0u32; WIDTH * HEIGHT];
     }
 }
