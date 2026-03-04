@@ -29,6 +29,8 @@ pub struct VM {
     address_regiser: u16,
     pc: usize,
 
+    stack: Vec<u16>,
+
     buffer: Vec<u32>,
 }
 
@@ -39,6 +41,7 @@ impl VM {
             registers: [0x00; 16],
             address_regiser: 0x00,
             pc: 0,
+            stack: vec![],
             buffer: vec![0u32; WIDTH * HEIGHT],
         }
     }
