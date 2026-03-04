@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader, os, path::PathBuf, sync::Arc};
+use std::{fs::File, io::BufReader, path::PathBuf};
 
 use crate::vm::VM;
 use anyhow::Context;
