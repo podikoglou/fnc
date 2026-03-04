@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use crate::{HEIGHT, WIDTH};
+
 #[derive(Debug)]
 pub struct VM {
     memory: [u8; 4096],
@@ -7,6 +9,8 @@ pub struct VM {
     registers: [u8; 16],
     address_regiser: u16,
     pc: usize,
+
+    buffer: Vec<u32>,
 }
 
 impl VM {
@@ -16,10 +20,13 @@ impl VM {
             registers: [0x00; 16],
             address_regiser: 0x00,
             pc: 0,
+            buffer: vec![0u32; WIDTH * HEIGHT],
         }
     }
 
-    pub fn render(&mut self, frame: &mut [u8]) {}
+    pub fn render(&mut self) -> &Vec<u32> {
+        &self.buffer
+    }
 
     pub fn load(&self, reader: impl Read) -> anyhow::Result<()> {
         Ok(())
