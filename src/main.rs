@@ -19,6 +19,7 @@ fn main() -> anyhow::Result<()> {
 
     // create vm
     let mut vm = VM::new();
+    vm.load_font();
     vm.load(reader)?;
 
     // create window
