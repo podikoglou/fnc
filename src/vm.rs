@@ -82,7 +82,12 @@ impl VM {
                 }
             }
 
-            0x1000 => { /* jump to address */ }
+            0x1000 => {
+                /* jump to address */
+                let addr = (opcode & 0x0FFF) << 4;
+
+                self.pc = addr.into();
+            }
             0x2000 => { /* call subroutine */ }
             0x3000 => { /* skip if Vx == NN */ }
             0x4000 => { /* skip if Vx != NN */ }
