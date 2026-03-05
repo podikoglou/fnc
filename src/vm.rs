@@ -28,6 +28,7 @@ pub struct VM {
     registers: [u8; 16],
     address_regiser: u16,
     pc: usize,
+    instruction: u16,
 
     stack: Vec<u16>,
 
@@ -41,6 +42,7 @@ impl VM {
             registers: [0x00; 16],
             address_regiser: 0x00,
             pc: 0,
+            instruction: 0x00,
             stack: vec![],
             buffer: vec![0u32; WIDTH * HEIGHT],
         }
@@ -60,7 +62,17 @@ impl VM {
         }
     }
 
-    pub fn execute_instruction(&mut self, opcode: u16) {
+    pub fn fetch(&mut self) {
+        let part_a = self.memory[self.pc] as u16;
+        let part_b = self.memory[self.pc + 1] as u16;
+
+        self.instruction = (part_a << 8) | part_b;
+        self.pc += 2;
+    }
+
+    pub fn execute(&mut self) {
+        let opcode = self.instruction;
+
         match opcode & 0xF000 {
             0x0000 => {
                 match opcode {

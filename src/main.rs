@@ -34,7 +34,7 @@ fn main() -> anyhow::Result<()> {
         },
     )?;
 
-    window.set_target_fps(30);
+    window.set_target_fps(4);
 
     // render loop
     // let mut buffer = vec![0u32; WIDTH * HEIGHT];
@@ -42,6 +42,8 @@ fn main() -> anyhow::Result<()> {
     // let mut size = (0, 0);
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        vm.fetch();
+
         // handle resizing
         let new_size = window.get_size();
         // if new_size != size {
