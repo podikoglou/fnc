@@ -91,8 +91,16 @@ impl VM {
                 self.pc = addr.into();
             }
             0x2000 => { /* call subroutine */ }
-            0x3000 => { /* skip if Vx == NN */ }
             0x4000 => { /* skip if Vx != NN */ }
+            0x3000 => {
+                /* skip if Vx == NN */
+                let register = (opcode & 0x0F00) >> 8;
+                let value = (opcode & 0x00FF) as u8;
+
+                if self.registers[register as usize] == value {
+                    self.pc += 2
+                }
+            }
             0x5000 => { /* skip if Vx == Vy */ }
             0x6000 => {
                 /* Vx = NN */
