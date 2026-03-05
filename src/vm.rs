@@ -92,7 +92,6 @@ impl VM {
             0x3000 => { /* skip if Vx == NN */ }
             0x4000 => { /* skip if Vx != NN */ }
             0x5000 => { /* skip if Vx == Vy */ }
-            0x7000 => { /* Vx += NN */ }
             0x6000 => {
                 /* Vx = NN */
 
@@ -101,6 +100,14 @@ impl VM {
 
                 self.registers[register as usize] = value;
             }
+            0x7000 => {
+                /* Vx += NN */
+                let register = (opcode & 0x0F00) >> 8;
+                let value = (opcode & 0x00FF) as u8;
+
+                self.registers[register as usize] += value;
+            }
+
             other => todo!("unimplemented opcode: {}", other),
         }
     }
