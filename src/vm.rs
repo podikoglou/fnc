@@ -27,6 +27,7 @@ pub struct VM {
 
     registers: [u8; 16],
     address_regiser: u16,
+    index_register: u16,
     pc: usize,
     instruction: u16,
 
@@ -41,6 +42,7 @@ impl VM {
             memory: [0x00; 4096],
             registers: [0x00; 16],
             address_regiser: 0x00,
+            index_register: 0x00,
             pc: 0,
             instruction: 0x00,
             stack: vec![],
@@ -106,6 +108,12 @@ impl VM {
                 let value = (opcode & 0x00FF) as u8;
 
                 self.registers[register as usize] += value;
+            }
+
+            0xA000 => {
+                let value = (opcode & 0x0FFF) << 4;
+
+                self.index_register = value;
             }
 
             other => todo!("unimplemented opcode: {}", other),
