@@ -115,6 +115,13 @@ impl VM {
 
                 self.index_register = value;
             }
+            0xD000 => {
+                let x = (opcode & 0x0F00) >> 16;
+                let y = (opcode & 0x00F0) >> 8;
+                let n = opcode & 0x000F;
+
+                // JESUS! TODO
+            }
 
             other => todo!("unimplemented opcode: {}", other),
         }
