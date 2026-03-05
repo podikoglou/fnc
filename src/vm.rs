@@ -111,8 +111,7 @@ impl VM {
             }
             0x5000 => { /* skip if Vx == Vy */ }
             0x6000 => {
-                /* Vx = NN */
-
+                /* Vx = Vy */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
 
@@ -127,6 +126,8 @@ impl VM {
 
                 self.registers[register as usize] += value;
             }
+
+            0x800 => {}
 
             0xA000 => {
                 let value = (opcode & 0x0FFF) << 4;
