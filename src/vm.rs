@@ -113,10 +113,12 @@ impl VM {
             0x6000 => {
                 /* Vx = NN */
 
-                let register = (opcode & 0x0F00) >> 8;
-                let value = (opcode & 0x00FF) as u8;
+                let left = (opcode & 0x0F00) >> 8;
+                let right = (opcode & 0x00F0) >> 4;
 
-                self.registers[register as usize] = value;
+                if self.registers[left as usize] == self.registers[right as usize] {
+                    self.pc += 2
+                }
             }
             0x7000 => {
                 /* Vx += NN */
