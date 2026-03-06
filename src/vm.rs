@@ -112,15 +112,21 @@ impl VM {
                     self.pc += 2
                 }
             }
-            0x5000 => { /* 5XY0: skip if Vx == Vy */ }
-            0x6000 => {
-                /* 6XNN: Vx = Vy */
+            0x5000 => {
+                /* 5XY0: skip if Vx == Vy */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
 
                 if self.registers[left as usize] == self.registers[right as usize] {
                     self.pc += 2
                 }
+            }
+            0x6000 => {
+                /* 6XNN: Vx = Vy */
+                let left = (opcode & 0x0F00) >> 8;
+                let right = (opcode & 0x00F0) >> 4;
+
+                self.registers[left as usize] = self.registers[right as usize];
             }
             0x7000 => {
                 /* 7XNN: Vx += NN */
