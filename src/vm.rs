@@ -169,8 +169,32 @@ impl VM {
                 self.registers[register as usize] = rand & value;
             }
             0xD000 => { /* DXYN: draw(Vx, Vy, N) */ }
-            0xE000 => { /* EX9E, EXA1 */ }
-            0xF000 => { /* FX07, FX0A, FX15, FX18, FX29, FX33, FX55, FX65 */ }
+            0xE000 => {
+                /* EX9E, EXA1 */
+                let register = (opcode & 0x0F00) >> 8;
+
+                match opcode & 0x00FF {
+                    0x009E => { /* EX9E: */ }
+                    0x00A1 => { /* EXA1: */ }
+                    other => todo!("unimplemented opcode: {}", other),
+                };
+            }
+            0xF000 => {
+                /* FX07, FX0A, FX15, FX18, FX29, FX33, FX55, FX65 */
+                let register = (opcode & 0x0F00) >> 8;
+
+                match opcode & 0x00FF {
+                    0x0007 => {}
+                    0x000A => {}
+                    0x0015 => {}
+                    0x0018 => {}
+                    0x0029 => {}
+                    0x0033 => {}
+                    0x0055 => {}
+                    0x0065 => {}
+                    other => todo!("unimplemented opcode: {}", other),
+                }
+            }
 
             other => todo!("unimplemented opcode: {}", other),
         }
