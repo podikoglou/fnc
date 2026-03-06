@@ -149,4 +149,20 @@ impl VM {
     fn clear_screen(&mut self) {
         self.buffer = vec![0u32; WIDTH * HEIGHT];
     }
+
+    #[inline(always)]
+    fn draw(&mut self, (x, y): (usize, usize)) {
+        for i in 0..12 {
+            for j in 0..12 {
+                self.draw_raw((x + i, y + j))
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn draw_raw(&mut self, (x, y): (usize, usize)) {
+        let pos = WIDTH * y + x;
+
+        self.buffer[pos] = 0xFFFFFF;
+    }
 }
