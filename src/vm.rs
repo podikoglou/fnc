@@ -149,7 +149,7 @@ impl VM {
             }
             0xA000 => {
                 /* ANNN: I = NNN */
-                let value = (opcode & 0x0FFF) << 4;
+                let value = opcode & 0x0FFF;
 
                 self.index_register = value;
             }
