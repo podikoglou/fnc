@@ -78,21 +78,24 @@ impl VM {
         match opcode & 0xF000 {
             0x0000 => {
                 match opcode {
-                    0x00E0 => self.clear_screen(),
-                    0x00EE => { /* return */ }
+                    0x00E0 => {
+                        /* 00E0: clear screen */
+                        self.clear_screen()
+                    }
+                    0x00EE => { /* 00EE: return */ }
                     other => todo!("unimplemented opcode: {}", other),
                 }
             }
 
             0x1000 => {
-                /* jump to address */
-                let addr = (opcode & 0x0FFF) << 4;
+                /* 1NNN: jump to address */
+                let addr = opcode & 0x0FFF;
 
                 self.pc = addr.into();
             }
-            0x2000 => { /* call subroutine */ }
+            0x2000 => { /* 2NNN: call subroutine */ }
             0x3000 => {
-                /* skip if Vx == NN */
+                /* 3XNN: skip if Vx == NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
 
@@ -101,7 +104,7 @@ impl VM {
                 }
             }
             0x4000 => {
-                /* skip if Vx != NN */
+                /* 4XNN: skip if Vx != NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
 
@@ -109,9 +112,9 @@ impl VM {
                     self.pc += 2
                 }
             }
-            0x5000 => { /* skip if Vx == Vy */ }
+            0x5000 => { /* 5XY0: skip if Vx == Vy */ }
             0x6000 => {
-                /* Vx = Vy */
+                /* 6XNN: Vx = Vy */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
 
@@ -120,27 +123,27 @@ impl VM {
                 }
             }
             0x7000 => {
-                /* Vx += NN */
+                /* 7XNN: Vx += NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
 
                 self.registers[register as usize] += value;
             }
 
-            0x800 => {}
+            0x8000 => { /* 8XY0, 8XY1, 8XY2, 8XY3, 8XY4, 8XY5, 8XY6, 8XY7, 8XYE  */ }
 
+            0x9000 => { /* 9XY0: if(Vx != Vy) */ }
             0xA000 => {
+                /* ANNN: I = NNN */
                 let value = (opcode & 0x0FFF) << 4;
 
                 self.index_register = value;
             }
-            0xD000 => {
-                let x = (opcode & 0x0F00) >> 16;
-                let y = (opcode & 0x00F0) >> 8;
-                let n = opcode & 0x000F;
-
-                // JESUS! TODO
-            }
+            0xB000 => { /* BNNN: PC = V0 + NNN */ }
+            0xC000 => { /* CXNN: Vx = rand() & NN */ }
+            0xD000 => { /* DXYN: draw(Vx, Vy, N) */ }
+            0xE000 => { /* EX9E, EXA1 */ }
+            0xF000 => { /* FX07, FX0A, FX15, FX18, FX29, FX33, FX55, FX65 */ }
 
             other => todo!("unimplemented opcode: {}", other),
         }
