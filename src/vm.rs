@@ -172,7 +172,15 @@ impl VM {
 
                 self.registers[register as usize] = rand & value;
             }
-            0xD000 => { /* DXYN: draw(Vx, Vy, N) */ }
+            0xD000 => {
+                /* DXYN: draw(Vx, Vy, N) */
+                let register_a = (opcode & 0x0F00) >> 8;
+                let register_b = (opcode & 0x00F0) >> 4;
+                let height = opcode & 0x000F;
+
+                let coord_a = self.registers[register_a as usize];
+                let coord_b = self.registers[register_b as usize];
+            }
             0xE000 => {
                 /* EX9E, EXA1 */
                 let register = (opcode & 0x0F00) >> 8;
