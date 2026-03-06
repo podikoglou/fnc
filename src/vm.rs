@@ -1,6 +1,7 @@
 use std::io::Read;
 
 use anyhow::bail;
+use log::info;
 
 use crate::{HEIGHT, WIDTH};
 
@@ -108,21 +109,27 @@ impl VM {
                 match opcode {
                     0x00E0 => {
                         /* 00E0: clear screen */
+                        info!("00E0");
                         self.clear_screen()
                     }
-                    0x00EE => { /* 00EE: return */ }
+                    0x00EE => {
+                        /* 00EE: return */
+                        info!("00EE");
+                    }
                     other => todo!("unimplemented opcode: {}", other),
                 }
             }
 
             0x1000 => {
                 /* 1NNN: jump to address */
+                info!("1NNN");
                 let addr = opcode & 0x0FFF;
 
                 self.pc = addr.into();
             }
             0x2000 => { /* 2NNN: call subroutine */ }
             0x3000 => {
+                info!("3XNN");
                 /* 3XNN: skip if Vx == NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
@@ -132,6 +139,7 @@ impl VM {
                 }
             }
             0x4000 => {
+                info!("4XNN");
                 /* 4XNN: skip if Vx != NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
@@ -141,6 +149,7 @@ impl VM {
                 }
             }
             0x5000 => {
+                info!("5XY0");
                 /* 5XY0: skip if Vx == Vy */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
@@ -150,6 +159,7 @@ impl VM {
                 }
             }
             0x6000 => {
+                info!("6XNN");
                 /* 6XNN: Vx = Vy */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
@@ -157,6 +167,7 @@ impl VM {
                 self.registers[left as usize] = self.registers[right as usize];
             }
             0x7000 => {
+                info!("7XNN");
                 /* 7XNN: Vx += NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
@@ -164,9 +175,13 @@ impl VM {
                 self.registers[register as usize] += value;
             }
 
-            0x8000 => { /* 8XY0, 8XY1, 8XY2, 8XY3, 8XY4, 8XY5, 8XY6, 8XY7, 8XYE  */ }
+            0x8000 => {
+                /* 8XY0, 8XY1, 8XY2, 8XY3, 8XY4, 8XY5, 8XY6, 8XY7, 8XYE  */
+                info!("8???");
+            }
 
             0x9000 => {
+                info!("9XY0");
                 /* 9XY0: if(Vx != Vy) */
                 let left = (opcode & 0x0F00) >> 8;
                 let right = (opcode & 0x00F0) >> 4;
@@ -176,18 +191,21 @@ impl VM {
                 }
             }
             0xA000 => {
+                info!("ANNN");
                 /* ANNN: I = NNN */
                 let value = opcode & 0x0FFF;
 
                 self.index_register = value;
             }
             0xB000 => {
+                info!("B000");
                 /* BNNN: PC = V0 + NNN */
                 let value = opcode & 0x0FFF;
 
                 self.pc = (self.registers[0] as u16 + value) as usize;
             }
             0xC000 => {
+                info!("C000");
                 /* CXNN: Vx = rand() & NN */
                 let register = (opcode & 0x0F00) >> 8;
                 let value = (opcode & 0x00FF) as u8;
@@ -197,6 +215,7 @@ impl VM {
                 self.registers[register as usize] = rand & value;
             }
             0xD000 => {
+                info!("D000");
                 /* DXYN: draw(Vx, Vy, N) */
                 let register_a = (opcode & 0x0F00) >> 8;
                 let register_b = (opcode & 0x00F0) >> 4;
@@ -206,6 +225,7 @@ impl VM {
                 let coord_b = self.registers[register_b as usize];
             }
             0xE000 => {
+                info!("E000");
                 /* EX9E, EXA1 */
                 let register = (opcode & 0x0F00) >> 8;
 
@@ -220,14 +240,14 @@ impl VM {
                 let register = (opcode & 0x0F00) >> 8;
 
                 match opcode & 0x00FF {
-                    0x0007 => {}
-                    0x000A => {}
-                    0x0015 => {}
-                    0x0018 => {}
-                    0x0029 => {}
-                    0x0033 => {}
-                    0x0055 => {}
-                    0x0065 => {}
+                    0x0007 => info!("FX07"),
+                    0x000A => info!("FX0A"),
+                    0x0015 => info!("FX15"),
+                    0x0018 => info!("FX18"),
+                    0x0029 => info!("FX29"),
+                    0x0033 => info!("FX33"),
+                    0x0055 => info!("FX55"),
+                    0x0065 => info!("FX65"),
                     other => todo!("unimplemented opcode: {}", other),
                 }
             }
