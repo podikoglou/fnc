@@ -1,6 +1,6 @@
 use std::io::Read;
 
-use anyhow::bail;
+use anyhow::{bail, ensure};
 use log::info;
 
 use crate::{GRID_HEIGHT, GRID_WIDTH, HEIGHT, SCALE, WIDTH};
@@ -27,11 +27,11 @@ const FONT: [u8; 80] = [
 macro_rules! draw_bit {
     ($bit:ident, $x:ident, $y:ident, $self:ident) => {
         if $bit == 1 {
-            if $self.pixel_at(($x, $y)) {
-                $self.set_pixel(($x, $y), false);
+            if let Some(true) = $self.pixel_at(($x, $y)) {
+                let _ = $self.set_pixel(($x, $y), false);
                 $self.registers[0xF] = 1;
             } else {
-                $self.set_pixel(($x, $y), true);
+                let _ = $self.set_pixel(($x, $y), true);
             }
         }
         $x += 1;
@@ -81,8 +81,8 @@ impl VM {
                 for xi in 0..SCALE {
                     for yi in 0..SCALE {
                         buffer[WIDTH * (y * SCALE + yi) + (x * SCALE + xi)] = match val {
-                            true => 0xFFFF,
-                            false => 0x0000,
+                            Some(true) => 0xFFFF,
+                            _ => 0x0000,
                         };
                     }
                 }
@@ -329,12 +329,17 @@ impl VM {
         self.pixels = vec![false; GRID_WIDTH * GRID_HEIGHT];
     }
 
-    fn pixel_at(&self, (x, y): (usize, usize)) -> bool {
-        self.pixels[GRID_WIDTH * y + x]
+    fn pixel_at(&self, (x, y): (usize, usize)) -> Option<&bool> {
+        self.pixels.get(GRID_WIDTH * y + x)
     }
 
-    fn set_pixel(&mut self, (x, y): (usize, usize), val: bool) {
-        self.pixels[GRID_WIDTH * y + x] = val
+    fn set_pixel(&mut self, (x, y): (usize, usize), val: bool) -> anyhow::Result<()> {
+        ensure!((0..GRID_WIDTH).contains(&x));
+        ensure!((0..GRID_HEIGHT).contains(&y));
+
+        self.pixels[GRID_WIDTH * y + x] = val;
+
+        Ok(())
     }
 
     // #[inline(always)]
