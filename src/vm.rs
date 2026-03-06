@@ -59,7 +59,7 @@ impl VM {
     pub fn load(&mut self, mut reader: impl Read) -> anyhow::Result<()> {
         let mut buf: [u8; 64] = [0x00; 64];
 
-        self.pc = 512;
+        let mut pos = 512;
 
         loop {
             match reader.read(&mut buf) {
@@ -72,10 +72,12 @@ impl VM {
             };
 
             for byte in buf {
-                self.memory[self.pc] = byte;
-                self.pc += 1;
+                self.memory[pos] = byte;
+                pos += 1
             }
         }
+
+        self.pc = 512;
 
         Ok(())
     }
