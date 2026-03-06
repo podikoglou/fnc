@@ -153,7 +153,12 @@ impl VM {
 
                 self.index_register = value;
             }
-            0xB000 => { /* BNNN: PC = V0 + NNN */ }
+            0xB000 => {
+                /* BNNN: PC = V0 + NNN */
+                let value = opcode & 0x0FFF;
+
+                self.pc = (self.registers[0] as u16 + value) as usize;
+            }
             0xC000 => { /* CXNN: Vx = rand() & NN */ }
             0xD000 => { /* DXYN: draw(Vx, Vy, N) */ }
             0xE000 => { /* EX9E, EXA1 */ }
