@@ -6,8 +6,13 @@ use minifb::{Key, ScaleMode, Window, WindowOptions};
 
 mod vm;
 
-const WIDTH: usize = 64 * 12;
-const HEIGHT: usize = 32 * 12;
+const GRID_WIDTH: usize = 64;
+const GRID_HEIGHT: usize = 32;
+
+const WIDTH: usize = GRID_WIDTH * 12;
+const HEIGHT: usize = GRID_HEIGHT * 12;
+
+const SCALE: usize = 12;
 
 fn main() -> anyhow::Result<()> {
     env_logger::init();
@@ -57,7 +62,7 @@ fn main() -> anyhow::Result<()> {
         // render
         let buffer = vm.render();
 
-        window.update_with_buffer(buffer, new_size.0, new_size.1)?;
+        window.update_with_buffer(&buffer, new_size.0, new_size.1)?;
     }
 
     Ok(())

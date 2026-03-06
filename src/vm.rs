@@ -3,7 +3,7 @@ use std::io::Read;
 use anyhow::bail;
 use log::info;
 
-use crate::{HEIGHT, WIDTH};
+use crate::{GRID_HEIGHT, GRID_WIDTH, HEIGHT, SCALE, WIDTH};
 
 const FONT: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -24,6 +24,24 @@ const FONT: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
+macro_rules! draw_bit {
+    ($bit:ident, $x:ident, $y:ident, $self:ident) => {
+        if $bit == 1 {
+            if $self.pixel_at(($x, $y)) {
+                $self.set_pixel(($x, $y), false);
+                $self.registers[0xF] = 1;
+            } else {
+                $self.set_pixel(($x, $y), true);
+            }
+        }
+        $x += 1;
+
+        if $x >= GRID_WIDTH {
+            break;
+        }
+    };
+}
+
 #[derive(Debug)]
 pub struct VM {
     memory: [u8; 4096],
@@ -36,7 +54,7 @@ pub struct VM {
 
     stack: Vec<u16>,
 
-    buffer: Vec<u32>,
+    pixels: Vec<bool>,
 }
 
 impl VM {
@@ -49,16 +67,33 @@ impl VM {
             pc: 0,
             instruction: 0x00,
             stack: vec![],
-            buffer: vec![0u32; WIDTH * HEIGHT],
+            pixels: vec![false; GRID_WIDTH * GRID_HEIGHT],
         }
     }
 
-    pub fn render(&mut self) -> &Vec<u32> {
-        &self.buffer
+    pub fn render(&mut self) -> Vec<u32> {
+        let mut buffer = vec![0x00; WIDTH * HEIGHT];
+
+        for x in 0..GRID_WIDTH {
+            for y in 0..GRID_HEIGHT {
+                let val = self.pixel_at((x, y));
+
+                for xi in 0..SCALE {
+                    for yi in 0..SCALE {
+                        buffer[WIDTH * (y * SCALE + yi) + (x * SCALE + xi)] = match val {
+                            true => 0xFFFF,
+                            false => 0x0000,
+                        };
+                    }
+                }
+            }
+        }
+
+        buffer
     }
 
     pub fn load(&mut self, mut reader: impl Read) -> anyhow::Result<()> {
-        let mut buf: [u8; 64] = [0x00; 64];
+        let mut buf: [u8; GRID_WIDTH] = [0x00; GRID_WIDTH];
 
         let mut pos = 512;
 
@@ -217,12 +252,48 @@ impl VM {
             0xD000 => {
                 info!("D000");
                 /* DXYN: draw(Vx, Vy, N) */
-                let register_a = (opcode & 0x0F00) >> 8;
-                let register_b = (opcode & 0x00F0) >> 4;
+                let register_x = (opcode & 0x0F00) >> 8;
+                let register_y = (opcode & 0x00F0) >> 4;
+
                 let height = opcode & 0x000F;
 
-                let coord_a = self.registers[register_a as usize];
-                let coord_b = self.registers[register_b as usize];
+                let mut x = self.registers[register_x as usize] as usize % WIDTH;
+                let mut y = self.registers[register_y as usize] as usize % HEIGHT;
+
+                self.registers[0xF] = 0;
+
+                let index = self.index_register;
+
+                for i in 0..height {
+                    // do we need an offset or does i point to the exact location where the sprite
+                    // starts already?
+                    let data = self.memory[(index + i) as usize];
+
+                    let bit_1 = (data & 0b10000000) >> 7;
+                    let bit_2 = (data & 0b01000000) >> 6;
+                    let bit_3 = (data & 0b00100000) >> 5;
+                    let bit_4 = (data & 0b00010000) >> 4;
+                    let bit_5 = (data & 0b00001000) >> 3;
+                    let bit_6 = (data & 0b00000100) >> 2;
+                    let bit_7 = (data & 0b00000010) >> 1;
+                    let bit_8 = data & 0b00000001;
+
+                    draw_bit!(bit_1, x, y, self);
+                    draw_bit!(bit_2, x, y, self);
+                    draw_bit!(bit_3, x, y, self);
+                    draw_bit!(bit_4, x, y, self);
+                    draw_bit!(bit_5, x, y, self);
+                    draw_bit!(bit_6, x, y, self);
+                    draw_bit!(bit_7, x, y, self);
+                    draw_bit!(bit_8, x, y, self);
+
+                    y += 1;
+                    x = self.registers[register_x as usize] as usize % WIDTH;
+
+                    if y >= GRID_HEIGHT {
+                        break;
+                    }
+                }
             }
             0xE000 => {
                 info!("E000");
@@ -257,22 +328,30 @@ impl VM {
     }
 
     fn clear_screen(&mut self) {
-        self.buffer = vec![0u32; WIDTH * HEIGHT];
+        self.pixels = vec![false; GRID_WIDTH * GRID_HEIGHT];
     }
 
-    #[inline(always)]
-    fn draw(&mut self, (x, y): (usize, usize)) {
-        for i in 0..12 {
-            for j in 0..12 {
-                self.draw_raw((x + i, y + j))
-            }
-        }
+    fn pixel_at(&self, (x, y): (usize, usize)) -> bool {
+        self.pixels[GRID_WIDTH * y + x]
     }
 
-    #[inline(always)]
-    fn draw_raw(&mut self, (x, y): (usize, usize)) {
-        let pos = WIDTH * y + x;
-
-        self.buffer[pos] = 0xFFFFFF;
+    fn set_pixel(&mut self, (x, y): (usize, usize), val: bool) {
+        self.pixels[GRID_WIDTH * y + x] = val
     }
+
+    // #[inline(always)]
+    // fn draw(&mut self, (x, y): (usize, usize)) {
+    //     for i in 0..SCALE {
+    //         for j in 0..SCALE {
+    //             self.draw_raw((x + i, y + j))
+    //         }
+    //     }
+    // }
+    //
+    // #[inline(always)]
+    // fn draw_raw(&mut self, (x, y): (usize, usize)) {
+    //     let pos = WIDTH * y + x;
+    //
+    //     self.buffer[pos] = 0xFFFFFF;
+    // }
 }
