@@ -138,7 +138,15 @@ impl VM {
 
             0x8000 => { /* 8XY0, 8XY1, 8XY2, 8XY3, 8XY4, 8XY5, 8XY6, 8XY7, 8XYE  */ }
 
-            0x9000 => { /* 9XY0: if(Vx != Vy) */ }
+            0x9000 => {
+                /* 9XY0: if(Vx != Vy) */
+                let left = (opcode & 0x0F00) >> 8;
+                let right = (opcode & 0x00F0) >> 4;
+
+                if self.registers[left as usize] != self.registers[right as usize] {
+                    self.pc += 2
+                }
+            }
             0xA000 => {
                 /* ANNN: I = NNN */
                 let value = (opcode & 0x0FFF) << 4;
