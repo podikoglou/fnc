@@ -1,5 +1,7 @@
 use std::io::Read;
 
+use anyhow::bail;
+
 use crate::{HEIGHT, WIDTH};
 
 const FONT: [u8; 80] = [
@@ -54,7 +56,27 @@ impl VM {
         &self.buffer
     }
 
-    pub fn load(&self, reader: impl Read) -> anyhow::Result<()> {
+    pub fn load(&mut self, mut reader: impl Read) -> anyhow::Result<()> {
+        let mut buf: [u8; 64] = [0x00; 64];
+
+        self.pc = 512;
+
+        loop {
+            match reader.read(&mut buf) {
+                Ok(read) => {
+                    if read == 0 {
+                        break;
+                    }
+                }
+                Err(err) => bail!(err),
+            };
+
+            for byte in buf {
+                self.memory[self.pc] = byte;
+                self.pc += 1;
+            }
+        }
+
         Ok(())
     }
 
