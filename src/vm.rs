@@ -219,11 +219,8 @@ impl VM {
                 let register = ((opcode & 0x0F00) >> 8) as usize;
                 let value = (opcode & 0x00FF) as u8;
 
-                match self.get_register(register) {
-                    Some(v) => {
-                        let _ = self.set_register(register, *v + value);
-                    }
-                    None => {}
+                if let Some(v) = self.get_register(register) {
+                    let _ = self.set_register(register, *v + value);
                 };
             }
 
