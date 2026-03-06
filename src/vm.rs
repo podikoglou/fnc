@@ -265,8 +265,6 @@ impl VM {
                 let index = self.index_register;
 
                 for i in 0..height {
-                    // do we need an offset or does i point to the exact location where the sprite
-                    // starts already?
                     let data = self.memory[(index + i) as usize];
 
                     let bit_1 = (data & 0b10000000) >> 7;
