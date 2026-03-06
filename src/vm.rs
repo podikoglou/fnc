@@ -128,6 +128,18 @@ impl VM {
         self.pc += 2
     }
 
+    fn get_register(&self, idx: usize) -> Option<&u8> {
+        self.registers.get(idx)
+    }
+
+    fn set_register(&mut self, idx: usize, val: u8) -> anyhow::Result<()> {
+        ensure!((0..16).contains(&idx));
+
+        self.registers[idx] = val;
+
+        Ok(())
+    }
+
     pub fn fetch(&mut self) {
         let part_a = self.memory[self.pc] as u16;
         let part_b = self.memory[self.pc + 1] as u16;
@@ -166,20 +178,20 @@ impl VM {
             0x3000 => {
                 info!("3XNN");
                 /* 3XNN: skip if Vx == NN */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
                 let value = (opcode & 0x00FF) as u8;
 
-                if self.registers[register as usize] == value {
+                if self.get_register(register) == Some(&value) {
                     self.increase_pc();
                 }
             }
             0x4000 => {
                 info!("4XNN");
                 /* 4XNN: skip if Vx != NN */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
                 let value = (opcode & 0x00FF) as u8;
 
-                if self.registers[register as usize] != value {
+                if self.get_register(register) != Some(&value) {
                     self.increase_pc();
                 }
             }
@@ -204,10 +216,15 @@ impl VM {
             0x7000 => {
                 info!("7XNN");
                 /* 7XNN: Vx += NN */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
                 let value = (opcode & 0x00FF) as u8;
 
-                self.registers[register as usize] += value;
+                match self.get_register(register) {
+                    Some(v) => {
+                        let _ = self.set_register(register, *v + value);
+                    }
+                    None => {}
+                };
             }
 
             0x8000 => {
@@ -242,61 +259,65 @@ impl VM {
             0xC000 => {
                 info!("C000");
                 /* CXNN: Vx = rand() & NN */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
                 let value = (opcode & 0x00FF) as u8;
 
                 let rand = rand::random::<u8>();
 
-                self.registers[register as usize] = rand & value;
+                let _ = self.set_register(register, rand & value);
             }
             0xD000 => {
                 info!("D000");
                 /* DXYN: draw(Vx, Vy, N) */
-                let register_x = (opcode & 0x0F00) >> 8;
-                let register_y = (opcode & 0x00F0) >> 4;
+                let register_x = ((opcode & 0x0F00) >> 8) as usize;
+                let register_y = ((opcode & 0x00F0) >> 4) as usize;
 
                 let height = opcode & 0x000F;
 
-                let mut x = self.registers[register_x as usize] as usize % WIDTH;
-                let mut y = self.registers[register_y as usize] as usize % HEIGHT;
+                if let (Some(x_initial), Some(y_initial)) =
+                    (self.get_register(register_x), self.get_register(register_y))
+                {
+                    let mut x = *x_initial as usize % WIDTH;
+                    let mut y = *y_initial as usize % HEIGHT;
 
-                self.registers[0xF] = 0;
+                    self.registers[0xF] = 0;
 
-                let index = self.index_register;
+                    let index = self.index_register;
 
-                for i in 0..height {
-                    let data = self.memory[(index + i) as usize];
+                    for i in 0..height {
+                        let data = self.memory[(index + i) as usize];
 
-                    let bit_1 = (data & 0b10000000) >> 7;
-                    let bit_2 = (data & 0b01000000) >> 6;
-                    let bit_3 = (data & 0b00100000) >> 5;
-                    let bit_4 = (data & 0b00010000) >> 4;
-                    let bit_5 = (data & 0b00001000) >> 3;
-                    let bit_6 = (data & 0b00000100) >> 2;
-                    let bit_7 = (data & 0b00000010) >> 1;
-                    let bit_8 = data & 0b00000001;
+                        let bit_1 = (data & 0b10000000) >> 7;
+                        let bit_2 = (data & 0b01000000) >> 6;
+                        let bit_3 = (data & 0b00100000) >> 5;
+                        let bit_4 = (data & 0b00010000) >> 4;
+                        let bit_5 = (data & 0b00001000) >> 3;
+                        let bit_6 = (data & 0b00000100) >> 2;
+                        let bit_7 = (data & 0b00000010) >> 1;
+                        let bit_8 = data & 0b00000001;
 
-                    draw_bit!(bit_1, x, y, self);
-                    draw_bit!(bit_2, x, y, self);
-                    draw_bit!(bit_3, x, y, self);
-                    draw_bit!(bit_4, x, y, self);
-                    draw_bit!(bit_5, x, y, self);
-                    draw_bit!(bit_6, x, y, self);
-                    draw_bit!(bit_7, x, y, self);
-                    draw_bit!(bit_8, x, y, self);
+                        draw_bit!(bit_1, x, y, self);
+                        draw_bit!(bit_2, x, y, self);
+                        draw_bit!(bit_3, x, y, self);
+                        draw_bit!(bit_4, x, y, self);
+                        draw_bit!(bit_5, x, y, self);
+                        draw_bit!(bit_6, x, y, self);
+                        draw_bit!(bit_7, x, y, self);
+                        draw_bit!(bit_8, x, y, self);
 
-                    y += 1;
-                    x = self.registers[register_x as usize] as usize % WIDTH;
+                        y += 1;
+                        x = self.registers[register_x as usize] as usize % WIDTH;
 
-                    if y >= GRID_HEIGHT {
-                        break;
+                        if y >= GRID_HEIGHT {
+                            break;
+                        }
                     }
                 }
             }
             0xE000 => {
                 info!("E000");
                 /* EX9E, EXA1 */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
 
                 match opcode & 0x00FF {
                     0x009E => { /* EX9E: */ }
@@ -306,7 +327,7 @@ impl VM {
             }
             0xF000 => {
                 /* FX07, FX0A, FX15, FX18, FX29, FX33, FX55, FX65 */
-                let register = (opcode & 0x0F00) >> 8;
+                let register = ((opcode & 0x0F00) >> 8) as usize;
 
                 match opcode & 0x00FF {
                     0x0007 => info!("FX07"),
