@@ -220,7 +220,7 @@ impl VM {
                 let value = (opcode & 0x00FF) as u8;
 
                 if let Some(v) = self.get_register(register) {
-                    let _ = self.set_register(register, *v + value);
+                    let _ = self.set_register(register, v.wrapping_add(value));
                 };
             }
 
