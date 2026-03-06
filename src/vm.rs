@@ -64,12 +64,16 @@ impl VM {
         }
     }
 
+    fn increase_pc(&mut self) {
+        self.pc += 2
+    }
+
     pub fn fetch(&mut self) {
         let part_a = self.memory[self.pc] as u16;
         let part_b = self.memory[self.pc + 1] as u16;
 
         self.instruction = (part_a << 8) | part_b;
-        self.pc += 2;
+        self.increase_pc();
     }
 
     pub fn execute(&mut self) {
@@ -100,7 +104,7 @@ impl VM {
                 let value = (opcode & 0x00FF) as u8;
 
                 if self.registers[register as usize] == value {
-                    self.pc += 2
+                    self.increase_pc();
                 }
             }
             0x4000 => {
@@ -109,7 +113,7 @@ impl VM {
                 let value = (opcode & 0x00FF) as u8;
 
                 if self.registers[register as usize] != value {
-                    self.pc += 2
+                    self.increase_pc();
                 }
             }
             0x5000 => {
@@ -118,7 +122,7 @@ impl VM {
                 let right = (opcode & 0x00F0) >> 4;
 
                 if self.registers[left as usize] == self.registers[right as usize] {
-                    self.pc += 2
+                    self.increase_pc();
                 }
             }
             0x6000 => {
@@ -144,7 +148,7 @@ impl VM {
                 let right = (opcode & 0x00F0) >> 4;
 
                 if self.registers[left as usize] != self.registers[right as usize] {
-                    self.pc += 2
+                    self.increase_pc();
                 }
             }
             0xA000 => {
