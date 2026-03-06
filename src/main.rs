@@ -43,6 +43,7 @@ fn main() -> anyhow::Result<()> {
 
     while window.is_open() && !window.is_key_down(Key::Escape) {
         vm.fetch();
+        vm.execute();
 
         // handle resizing
         let new_size = window.get_size();
