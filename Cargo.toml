@@ -5,5 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.102"
+env_logger = "0.11.9"
+log = "0.4.29"
 minifb = "0.28"
 rand = "0.10.0"

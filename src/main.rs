@@ -10,6 +10,8 @@ const WIDTH: usize = 64 * 12;
 const HEIGHT: usize = 32 * 12;
 
 fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     // read file
     let mut args = std::env::args().skip(1);
 
