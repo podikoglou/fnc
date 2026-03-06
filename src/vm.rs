@@ -159,7 +159,15 @@ impl VM {
 
                 self.pc = (self.registers[0] as u16 + value) as usize;
             }
-            0xC000 => { /* CXNN: Vx = rand() & NN */ }
+            0xC000 => {
+                /* CXNN: Vx = rand() & NN */
+                let register = (opcode & 0x0F00) >> 8;
+                let value = (opcode & 0x00FF) as u8;
+
+                let rand = rand::random::<u8>();
+
+                self.registers[register as usize] = rand & value;
+            }
             0xD000 => { /* DXYN: draw(Vx, Vy, N) */ }
             0xE000 => { /* EX9E, EXA1 */ }
             0xF000 => { /* FX07, FX0A, FX15, FX18, FX29, FX33, FX55, FX65 */ }
