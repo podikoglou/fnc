@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
         },
     )?;
 
-    window.set_target_fps(4);
+    window.set_target_fps(60);
 
     // render loop
     // let mut buffer = vec![0u32; WIDTH * HEIGHT];
